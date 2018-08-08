@@ -32,7 +32,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-@ScriptManifest(name = "Zzz Woodcutter", author = "Zor", version = 1.0, info = "Chops trees until oaks semi auto muling", logo = "")  //Helps the client understand and find the script we compile
+@ScriptManifest(name = "Zzz Woodcutter", author = "Zor", version = 1.1, info = "Chops trees until oaks semi auto muling", logo = "")  //Helps the client understand and find the script we compile
 
 public class Main extends Script {
 	
