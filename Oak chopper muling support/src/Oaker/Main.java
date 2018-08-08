@@ -96,35 +96,35 @@ public class Main extends Script {
 	   
 	   
 	    public void bank() throws InterruptedException, IOException {
-	        if (this.muling && !this.bankArea.contains(myPlayer())) {
-	            this.getWalking().webWalk(bankArea);
+	        if (muling && !bankArea.contains(myPlayer())) {
+	            getWalking().webWalk(bankArea);
 	        }
 	        bank.open();
-	        if (!this.myPlayer().isMoving() && !this.bank.isOpen()) {
+	        if (!myPlayer().isMoving() && !bank.isOpen()) {
 	            new ConditionalSleep((int)(Math.random() * 1000.0 + 3000.0)){
 
 	                public boolean condition() throws InterruptedException {
 	                    return Main.this.bank.isOpen();
 	                }
 	            }.sleep();
-	        } else if (this.muling) {
-	            this.bank.depositAll();
-	            this.bank.enableMode(BankMode.WITHDRAW_NOTE);
-	            this.bank.withdrawAll("Oak logs");
-	        } else if (this.skills.getStatic(Skill.WOODCUTTING) > 14) {
-	            this.bank.enableMode(BankMode.WITHDRAW_ITEM);
-	            if (this.bank.contains(new String[]{"Bronze axe"})) {
+	        } else if (muling) {
+	            bank.depositAll();
+	            bank.enableMode(BankMode.WITHDRAW_NOTE);
+	            bank.withdrawAll("Oak logs");
+	        } else if (skills.getStatic(Skill.WOODCUTTING) > 14) {
+	            bank.enableMode(BankMode.WITHDRAW_ITEM);
+	            if (bank.contains(new String[]{"Bronze axe"})) {
 	            	bank.withdraw("Bronze axe", 1);
-	                this.bank.close();
+	                bank.close();
 	            } else {
-	                this.mule();
+	                mule();
 	            }
 	        }
 	    }
 	   
 	    public void waitForTrade(String mule) throws InterruptedException, IOException {
-	        this.getStatus = "Waiting";
-	        Player closest = (Player)this.getPlayers().closest(new String[]{mule});
+	        getStatus = "Waiting for Player";
+	        Player closest = (Player)getPlayers().closest(new String[]{mule});
 	        if (!this.isTrading() && closest != null && closest.interact(new String[]{"Trade with"})) {
 	            new ConditionalSleep((int)(Math.random() * 4000.0 + 6000.0)){
 
@@ -134,7 +134,7 @@ public class Main extends Script {
 	            }.sleep();
 	        }
 	        Main.sleep((long)Main.random((int)5000, (int)8000));
-	        if (this.isTrading() && this.inventory.contains(new String[]{"Oak logs"}) && this.trade.isFirstInterfaceOpen() && this.inventory.interact("Offer-All", new String[]{"Oak logs"})) {
+	        if (isTrading() && inventory.contains(new String[]{"Oak logs"}) && trade.isFirstInterfaceOpen() && inventory.interact("Offer-All", new String[]{"Oak logs"})) {
 	            new ConditionalSleep((int)(Math.random() * 4000.0 + 9000.0)){
 
 	                public boolean condition() throws InterruptedException {
@@ -152,7 +152,7 @@ public class Main extends Script {
 	            }.sleep();
 	            Main.sleep((long)Main.random((int)1000, (int)2500));
 	        }
-	        if (this.isTrading() && this.trade.acceptTrade()) {
+	        if (isTrading() && this.trade.acceptTrade()) {
 	            new ConditionalSleep((int)(Math.random() * 4000.0 + 9000.0)){
 
 	                public boolean condition() throws InterruptedException {
@@ -160,10 +160,10 @@ public class Main extends Script {
 	                }
 	            }.sleep();
 	            Main.sleep((long)Main.random((int)1000, (int)2500));
-	            if (!this.inventory.contains(new String[]{"Oak logs"})) {
-	                this.muling = false;
-	                this.logsmuled = oaklogscut + logsmuled;
-	                this.oaklogscut = 0;
+	            if (!inventory.contains(new String[]{"Oak logs"})) {
+	                muling = false;
+	                logsmuled = oaklogscut + logsmuled;
+	                oaklogscut = 0;
 	            }
 	        }
 
@@ -174,7 +174,7 @@ public class Main extends Script {
 	        SystemAlert sa = null;
 	        try {
 	            BufferedImage img = ImageIO.read(new URL("https://gyazo.com/ba33fdf73f6e2224eac4621276f2da4d.png"));
-	            sa = new SystemAlert(400, 100, img, string, "World " + this.worlds.getCurrentWorld(), new Date());
+	            sa = new SystemAlert(400, 100, img, string, "World " + worlds.getCurrentWorld(), new Date());
 	            this.makeSysAlertVisisble(sa);
 	        }
 	        catch (Exception e) {
@@ -188,20 +188,20 @@ public class Main extends Script {
 	    }
 	   
 	    public boolean isTrading() {
-	        return this.trade.isCurrentlyTrading() || this.trade.isFirstInterfaceOpen() || this.trade.isSecondInterfaceOpen();
+	        return trade.isCurrentlyTrading() || trade.isFirstInterfaceOpen() || trade.isSecondInterfaceOpen();
 	    }
 	   
 	    public void mule() throws InterruptedException, IOException {
-	        this.getStatus = "Muling";
-	        this.muling = true;
+	        getStatus = "Muling";
+	        muling = true;
 	        bank();
-			if (this.skills.getStatic(Skill.WOODCUTTING) > 14 && this.bankArea.contains(myPlayer()) && this.inventory.contains(new int[]{1522}) && !this.isTrading()) {
-	            if (!this.notified) {
-	                this.systemAlert("Oak Logs");
-	                this.notified = true;
+			if (skills.getStatic(Skill.WOODCUTTING) > 14 && bankArea.contains(myPlayer()) && inventory.contains(new int[]{1522}) && !isTrading()) {
+	            if (!notified) {
+	                systemAlert("Oak Logs");
+	                notified = true;
 	            }
 	            bank.close();
-	            this.waitForTrade(this.muleName);
+	            waitForTrade(muleName);
 	        }
 	    }
 	   
@@ -212,13 +212,13 @@ public class Main extends Script {
 	        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	        int gX = (int)(screenSize.getWidth() / 2.0) - 150;
 	        int gY = (int)(screenSize.getHeight() / 2.0) - 40;
-	        this.gui = new JFrame("Zzz Woodcutter");
-	        this.gui.setBounds(gX, gY, 300, 80);
-	        this.gui.setResizable(false);
+	        gui = new JFrame("Zzz Woodcutter");
+	        gui.setBounds(gX, gY, 300, 80);
+	        gui.setResizable(false);
 	        JPanel panel = new JPanel();
 	        JLabel label = new JLabel("Mule name: ");
 	        JLabel label2 = new JLabel("Logs Cut Before Muling: ");
-	        this.gui.add(panel);
+	        gui.add(panel);
 	        textField.addActionListener(new ActionListener(){
 
 	            @Override
@@ -239,11 +239,11 @@ public class Main extends Script {
 	        panel.add(spinner);
 	        JButton startButton = new JButton("Start");
 	        startButton.addActionListener(e -> {
-	            this.muleName = textField.getText();
-	            this.muleAt = ((Integer)spinner.getValue()).intValue();
-	            this.gui.setVisible(false);
-	            this.startTime = System.currentTimeMillis();
-	            this.thread = new Thread(){
+	            muleName = textField.getText();
+	            muleAt = ((Integer)spinner.getValue()).intValue();
+	            gui.setVisible(false);
+	            startTime = System.currentTimeMillis();
+	            thread = new Thread(){
 
 	                @Override
 	                public synchronized void run() {
@@ -258,12 +258,12 @@ public class Main extends Script {
 	                    }
 	                }
 	            };
-	            this.thread.start();
+	            thread.start();
 	        }
 	        );
 	        panel.add(startButton);
 	        label.setForeground(Color.black);
-	        this.gui.setVisible(true);
+	        gui.setVisible(true);
 	        sleep(20000);
 	    }
 	   
@@ -305,8 +305,8 @@ public class Main extends Script {
     @Override
 
     public int onLoop() throws InterruptedException{
-    	this.state = this.getState();
-        switch (this.state) {
+    	state = this.getState();
+        switch (state) {
 		case BANK: {
 			getStatus = "Banking";
 			getWalking().webWalk(depoArea.getRandomPosition());
@@ -377,7 +377,7 @@ public class Main extends Script {
 		case MULE: {
 			getStatus = "Muling";
 			try {
-				this.mule();
+				mule();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
