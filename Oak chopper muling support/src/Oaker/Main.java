@@ -52,7 +52,7 @@ public class Main extends Script {
 	int startLevel = -1;
 	int currentXP = -1;
 	int currentLevel = -1;
-	int oaklogscut = 25;
+	int oaklogscut;
     private boolean muling = false;
     private boolean notified = false;
     private String muleName;
