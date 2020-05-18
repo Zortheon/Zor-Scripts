@@ -1,0 +1,283 @@
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.util.Comparator;
+import java.util.concurrent.TimeUnit;
+
+import org.osbot.rs07.api.Bank;
+import org.osbot.rs07.api.map.Area;
+import org.osbot.rs07.api.map.Position;
+import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.NPC;
+import org.osbot.rs07.api.ui.Message;
+import org.osbot.rs07.api.ui.World;
+import org.osbot.rs07.script.Script;
+import org.osbot.rs07.script.ScriptManifest;
+
+import utils.Sleep;
+
+
+
+@ScriptManifest(name = "zZz Pineapple Buyer", author = "Zor", version = 1.0, info = "Start with money let run", logo = "")  //Helps the client understand and find the script we compile
+
+public class Main extends Script {
+
+	private long timeBegan;
+	private long timeRan;
+	private int pineBought;
+	private String state;
+	private Area buy = new Area(new Position(2485, 3489,1), new Position( 2493, 3487, 1));
+	private Area bank = new Area (new Position(2449, 3482,1), new Position(2449, 3483,1));
+	private Area genArea = new Area(new Position(2432, 3516,1), new Position(2537, 3456, 1));
+	private boolean bought = false;
+	private boolean hop = false;
+	private int worldsInARow = 0;
+
+
+	@Override
+
+	public void onStart() {
+		timeBegan = System.currentTimeMillis();
+		pineBought = 0;
+		state = "Starting";
+
+
+	}
+
+
+
+	@Override
+
+	public void onExit() {
+
+	}
+
+	@Override
+
+	public int onLoop() throws InterruptedException {
+		
+		if(!genArea.contains(myPlayer())) { 
+			state = "Walking there";
+			walkThere();
+		
+		}else if(worldsInARow == 5) {
+			getWorlds().hopToP2PWorld();
+	
+		}else if(inventory.isFull() && !getBank().isOpen() && !bank.contains(myPlayer())) {
+			state = "Walking to bank";
+			walkToBank();
+			bought = false;
+			hop = false;
+
+		}else if(inventory.isFull() && !getBank().isOpen() && bank.contains(myPlayer())) {
+			state = "Opening bank";
+			openBank();
+		}else if(inventory.isFull() && getBank().isOpen()) {
+			state = "Depositing";
+			deposit();
+
+		} else if(!inventory.isFull() && getBank().isOpen()) {
+			state = "Closing bank";
+			closeBank(); 
+
+		}else if(inventory.isEmptyExcept(995) && !buy.contains(myPosition())) {
+			state ="Running to shop";
+			runToShop();
+
+		}else if(buy.contains(myPosition()) && !inventory.isFull() && !getStore().isOpen() && !bought) {
+			state = "Trading";
+			trade();
+
+		}else if(buy.contains(myPosition()) && !inventory.isFull() && getStore().isOpen() && !bought) {
+			state= "Buying";
+			if(getStore().getAmount("Pineapple") >1) { //try using as an int before hand
+				buy();
+				worldsInARow = 0;
+			}else if(getStore().getAmount("Pineapple") <= 1){
+				worldsInARow++; //check if this works when good //check if everything involving worldsinarow is good
+			}
+			bought = true;
+		
+		}else if(buy.contains(myPosition()) && store.isOpen() && getStore().isOpen() && bought && !hop ) {
+			state = "Closing Store";
+			closeStore();
+			hop = true;
+	
+		}else if(hop && bought) {
+			state = "Hopping";
+			hopWorlds();
+			hop = false;
+			bought = false;
+		
+		}
+
+
+
+
+
+
+		return 700; 
+
+
+
+
+	}
+
+	private void openBank() throws InterruptedException {
+		getBank().open();
+		Sleep.sleepUntil(() -> getBank().isOpen(), 10000);
+	}
+
+
+
+	private void closeBank() {
+		getBank().close();
+		Sleep.sleepUntil(() -> !getBank().isOpen(), 10000);
+		
+	}
+
+
+
+	private void deposit() throws InterruptedException {
+		Bank ban = getBank();
+		sleep(random(random(200, 1000), random(1000, 15000)));
+		ban.depositAllExcept("Coins");
+		pineBought +=27;
+		Sleep.sleepUntil(() ->  !inventory.isFull(), 23000);
+		sleep(random(random(100,600), random(1000, 1500)));
+	}
+
+
+
+	private void hopWorlds() throws InterruptedException {
+		getWorlds().hop(nextWorldInOrder(true));
+
+		sleep(random(1442, 8352));
+
+	}
+
+
+
+	private void closeStore() throws InterruptedException {
+		getStore().close();
+		Sleep.sleepUntil(() -> getStore().close(), 2000);
+		sleep(random(1000,2345));
+
+	}
+
+
+
+	private void buy() throws InterruptedException {
+		if(getStore().isOpen()) {
+			sleep(random(10,239));
+			getStore().buy("Pineapple", 10);
+			sleep(random(9, 898));
+		}
+	}
+
+
+
+	private void walkThere() throws InterruptedException {
+		getWalking().webWalk(buy);
+		Sleep.sleepUntil(() -> buy.contains(myPlayer()), 20000);
+		sleep(random(23, 923));
+
+	}
+
+
+
+	private void trade() throws InterruptedException {
+		NPC buyGuy = npcs.closest(16);
+		if(buyGuy != null && buyGuy.exists()) {
+			buyGuy.interact("Trade");
+			Sleep.sleepUntil(() -> store.isOpen(), 20000);
+			sleep(random(543, 989));
+
+
+		}
+	}
+	private int nextWorldInOrder(boolean members) {
+		return getWorlds().getAvailableWorlds(true)
+				.stream()
+				.filter(world -> !world.isPvpWorld() && world.isMembers() == members && !world.getActivity().contains("skill") && !world.getActivity().contains("Deadman") && world.getId() > getWorlds().getCurrentWorld() && !world.getActivity().contains("High") && !world.getActivity().contains("Bounty"))
+				.min(Comparator.comparingInt(World::getId))
+				.map(World::getId)
+				.orElseGet(() -> members ? 302 : 301);
+	}
+
+
+
+	private void runToShop() {
+		getWalking().webWalk(buy);
+		Sleep.sleepUntil(() -> buy.contains(myPlayer()), 60000);
+		try {
+			sleep(random(random(823, 2542), random(2632, 5152)));
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+
+
+	private void walkToBank() {
+		getWalking().webWalk(bank);
+		Sleep.sleepUntil(() -> bank.contains(myPlayer()), 60000);
+	}
+
+
+	@Override
+
+	public void onPaint(Graphics2D g) {
+		Font font = new Font("Java Kick BTN",Font.BOLD,12);
+		g.setFont(font);
+		g.setColor(Color.RED);
+		timeRan = System.currentTimeMillis() - this.timeBegan;
+		g.drawString(ft(timeRan), 12, 15);
+		g.drawString("State: " + state, 12, 35);
+		g.drawString("Pineapples Bought: " + pineBought, 12, 55);
+		g.drawString("World: " + worlds.getCurrentWorld(), 12, 75);
+		g.drawString("Worlds in a row empty: " + worldsInARow, 12, 95);
+
+
+	}
+
+
+
+	@Override
+	public void onMessage(Message message) throws InterruptedException {
+		//Checking game messages (GAME,PLAYER,CLAN_CHAT) Seperate by message type. to find message types use the code below
+		log(message.getType());
+	}
+
+	@Override
+	public void onResponseCode(int responseCode) throws InterruptedException {
+		//Checking client response codes(BANNED, DISCONNECTED, ....)
+		if (responseCode == 9){
+			//do something since we received response code 9
+		}
+	}
+	private String ft(long duration) {
+		String res = "";
+		long days = TimeUnit.MILLISECONDS.toDays(duration);
+		long hours = TimeUnit.MILLISECONDS.toHours(duration)
+				- TimeUnit.DAYS.toHours(TimeUnit.MILLISECONDS.toDays(duration));
+		long minutes = TimeUnit.MILLISECONDS.toMinutes(duration)
+				- TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS
+						.toHours(duration));
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(duration)
+				- TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS
+						.toMinutes(duration));
+		if (days == 0) {
+			res = (hours + ":" + minutes + ":" + seconds);
+		} else {
+			res = (days + ":" + hours + ":" + minutes + ":" + seconds);
+		}
+		return res;
+	}
+
+
+}
+
+
